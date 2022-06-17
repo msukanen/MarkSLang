@@ -1,3 +1,4 @@
+import kotlin.math.PI
 import kotlin.random.Random
 
 /**
@@ -30,7 +31,7 @@ class Executor(private val src_code: String) {
      *
      * @param types Param types, in desired (specific) order.
      */
-    data class CmdParam(val types:List<PType>) : CmdParamI {
+    data class CmdParam(val types: List<PType>) : CmdParamI {
         constructor() : this(listOf())
     }
 
@@ -39,14 +40,14 @@ class Executor(private val src_code: String) {
      *
      * @param with Cmd 'X' will be swapped with this one whenever encountered.
      */
-    data class CmdSwap(val with:String) : CmdParamI
+    data class CmdSwap(val with: String) : CmdParamI
 
     /**
      * Handle JUMP, WHILE, etc. jump points.
      *
      * @param src Source code, line by line.
      */
-    private fun compile(src:List<String>): Pair<Map<String, Int>, List<List<String>>> {
+    private fun compile(src: List<String>): Pair<Map<String, Int>, List<List<String>>> {
         val raw = src.toMutableList()
         val jmpPoints = mutableMapOf<String, Int>()
         val repl1 = ArrayDeque<Pair<String, String>>()
@@ -99,8 +100,8 @@ class Executor(private val src_code: String) {
 
                 compiled.add(ln)
 
-                if (ln.size < (cmd as CmdParam).types.size+1)
-                        throw IllegalStateException("WTF!")
+                if (ln.size < (cmd as CmdParam).types.size + 1)
+                    throw IllegalStateException("WTF!")
 
                 cmd.types.forEachIndexed { index, param ->
                     if (!when (param) {
@@ -111,7 +112,7 @@ class Executor(private val src_code: String) {
                             PType.D_R -> isDTA(ln[index + 1]) || isREG(ln[index + 1])
                             PType.CMP -> isCMP(ln[index + 1])
                         }
-                    ) throw IllegalStateException("In \"$it\": '${ln[index+1]}' is not $param")
+                    ) throw IllegalStateException("In \"$it\": '${ln[index + 1]}' is not $param")
                 }
             } else compiled.add(listOf("NOP"))
         }
@@ -124,7 +125,7 @@ class Executor(private val src_code: String) {
      *
      * @param verbose Be verbose?
      */
-    fun run(verbose:Boolean = false): List<String> {
+    fun run(verbose: Boolean = false): List<String> {
         val (jmpPoints, compiled) = compile(src_code.trim().split(regex = Regex("\\s*\n\\s*")))
         val vars = mutableMapOf<String, Number>()
         resetVars(vars)
@@ -135,7 +136,7 @@ class Executor(private val src_code: String) {
             val cmd = compiled[prc]
             if (verbose) println(cmd)
             prc++
-            when(cmd[0]) {
+            when (cmd[0]) {
                 "NOP" -> continue
                 "OUT" -> out.add(varOrVal(vars, cmd[1]).toString())
                 "SET" -> vars[cmd[1]] = varOrVal(vars, cmd[2])
@@ -171,6 +172,7 @@ class Executor(private val src_code: String) {
                     resetVars(vars)
                     prc = 0
                 }
+                "PI" -> vars[cmd[1]] = PI
             }
         }
         return out.toList()
@@ -190,6 +192,7 @@ class Executor(private val src_code: String) {
                 else -> a.toDouble() + b.toDouble()
             }
         }
+
         /**
          * Handle subtraction.
          *
@@ -203,6 +206,7 @@ class Executor(private val src_code: String) {
                 else -> a.toDouble() - b.toDouble()
             }
         }
+
         /**
          * Handle multiplication.
          *
@@ -216,6 +220,7 @@ class Executor(private val src_code: String) {
                 else -> a.toDouble() * b.toDouble()
             }
         }
+
         /**
          * Handle division.
          *
@@ -228,27 +233,30 @@ class Executor(private val src_code: String) {
         /**
          * Param is REG? FYI: REG is a singular uppercase letter...
          */
-        private fun isREG(s:String): Boolean = ("A".."Z").contains(s)
+        private fun isREG(s: String): Boolean = ("A".."Z").contains(s)
 
         /**
          * Param is DTA? FYI/TODO: DTA is a numeric type of some sort, most often Int.
          */
-        private fun isDTA(s:String): Boolean = Regex("^\\d+([.]\\d+)?$").matches(s)
+        private fun isDTA(s: String): Boolean = when (s) {
+            "PI", "π", "Π" -> true
+            else -> Regex("^\\d+([.]\\d+)?$").matches(s)
+        }
 
         /**
          * Param is LOC? FYI: LOG is in source code a jump point designator, e.g. 'jump_here:'.
          */
-        private fun isLOC(s:String): Boolean = Regex("^(__wend__)?[a-z_\\d]+$").matches(s)
+        private fun isLOC(s: String): Boolean = Regex("^(__wend__)?[a-z_\\d]+$").matches(s)
 
         /**
          * Param is a CMD (e.g. 'JUMP')?
          */
-        private fun isCMD(s:String): Boolean = s == "JUMP"
+        private fun isCMD(s: String): Boolean = s == "JUMP"
 
         /**
          * Param is a CMP? FYI: CMP is a compare/computation operator of some sort.
          */
-        private fun isCMP(s:String): Boolean = s in known_cmp
+        private fun isCMP(s: String): Boolean = s in known_cmp
 
         /**
          * Unify DTA/REG for 'read access' consumption.
@@ -257,9 +265,11 @@ class Executor(private val src_code: String) {
          * @param s Something what's either DTA or REG.
          * @return TODO: a Number until we support other data types.
          */
-        private fun varOrVal(v:Map<String, Number>, s:String): Number {
+        private fun varOrVal(v: Map<String, Number>, s: String): Number {
             if (s in v)
                 return v[s]!!
+            if (s == "PI" || s == "π" || s == "Π")
+                return PI
             if (s.contains("."))
                 return s.toDouble()
             return s.toInt()
@@ -272,7 +282,7 @@ class Executor(private val src_code: String) {
          * @param v2 Some Number.
          * @param CMP CoMPuter to use for v1/v2.
          */
-        private fun cmp(v1:Number, CMP:CMPType, v2:Number): Boolean = when(CMP) {
+        private fun cmp(v1: Number, CMP: CMPType, v2: Number): Boolean = when (CMP) {
             CMPType.EQ -> v1 == v2
             CMPType.NEQ -> v1 != v2
             CMPType.LT -> v1.toDouble() < v2.toDouble()
@@ -290,7 +300,7 @@ class Executor(private val src_code: String) {
          *
          * @param v Variable map to reset.
          */
-        private fun resetVars(v:MutableMap<String, Number>) {
+        private fun resetVars(v: MutableMap<String, Number>) {
             for (i in 'A'..'Z')
                 v[i.toString()] = 0
         }
@@ -324,6 +334,8 @@ class Executor(private val src_code: String) {
             "TRIM" to CmdParam(listOf(PType.REG)),
             "SUM" to CmdParam(listOf(PType.REG, PType.D_R, PType.D_R)),
             "RESET" to CmdParam(),
+            "PI" to CmdParam(listOf(PType.REG)),
+            "π" to CmdSwap("PI"),
         )
 
         /**

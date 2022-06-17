@@ -118,7 +118,12 @@ OUT A
 ```
 [169.9951171875]
 ```
-
+## PI, π
+"PI" or π is what one might expect it to be, approx. 3.1415926...
+* ``PI E`` sets **REG**``E`` to hold PI.
+* ``π E``
+* ``ADD C PI`` adds PI to whatever **REG**``C`` contains.
+* ``R * π`` multiplies **REG**``R`` with PI.
 # Example Code
 Shovel prime numbers below 50 into output buffer: 
 ```
