@@ -56,7 +56,7 @@ class Executor(private val src_code: String) {
         raw.forEach {
             // lets extract jump points 1st round
             val ln = it.split(Regex("\\s+")).toMutableList()
-            if (Regex("^(__wend__)?[a-z\\d]+:?\\s*$").matches(ln[0]))
+            if (Regex("^(__wend__)?[a-z_\\d]+:?\\s*$").matches(ln[0]))
                 jmpPoints[ln[0].replace(":", "")] = prc
             else if (ln[0] == "WHILE") {
                 // TODO should be UUID level of randomness used, but this'll do for now...
@@ -166,31 +166,86 @@ class Executor(private val src_code: String) {
     }
 
     companion object {
+        /**
+         * Handle addition.
+         *
+         * @param a Some Number.
+         * @param b Some Number.
+         * @return a Number, obviously.
+         */
         inline fun <reified T : Number, reified U : Number> funcAdd(a: T, b: U): Number {
             return when {
                 a is Int && b is Int -> a + b
                 else -> a.toDouble() + b.toDouble()
             }
         }
+        /**
+         * Handle subtraction.
+         *
+         * @param a Some Number.
+         * @param b Some Number.
+         * @return a Number, obviously.
+         */
         inline fun <reified T : Number, reified U : Number> funcSub(a: T, b: U): Number {
             return when {
                 a is Int && b is Int -> a - b
                 else -> a.toDouble() - b.toDouble()
             }
         }
+        /**
+         * Handle multiplication.
+         *
+         * @param a Some Number.
+         * @param b Some Number.
+         * @return a Number, obviously.
+         */
         inline fun <reified T : Number, reified U : Number> funcMul(a: T, b: U): Number {
             return when {
                 a is Int && b is Int -> a * b
                 else -> a.toDouble() * b.toDouble()
             }
         }
+        /**
+         * Handle division.
+         *
+         * @param a Some Number.
+         * @param b Some Number.
+         * @return a Number, obviously.
+         */
         inline fun <reified T : Number, reified U : Number> funcDiv(a: T, b: U): Number = a.toDouble() / b.toDouble()
 
+        /**
+         * Param is REG? FYI: REG is a singular uppercase letter...
+         */
         private fun isREG(s:String): Boolean = ("A".."Z").contains(s)
+
+        /**
+         * Param is DTA? FYI/TODO: DTA is a numeric type of some sort, most often Int.
+         */
         private fun isDTA(s:String): Boolean = Regex("^\\d+$").matches(s)
-        private fun isLOC(s:String): Boolean = Regex("^(__wend__)?[a-z\\d]+$").matches(s)
+
+        /**
+         * Param is LOC? FYI: LOG is in source code a jump point designator, e.g. 'jump_here:'.
+         */
+        private fun isLOC(s:String): Boolean = Regex("^(__wend__)?[a-z_\\d]+$").matches(s)
+
+        /**
+         * Param is a CMD (e.g. 'JUMP')?
+         */
         private fun isCMD(s:String): Boolean = s == "JUMP"
+
+        /**
+         * Param is a CMP? FYI: CMP is a compare/computation operator of some sort.
+         */
         private fun isCMP(s:String): Boolean = s in known_cmp
+
+        /**
+         * Unify DTA/REG for 'read access' consumption.
+         *
+         * @param v Vars to fetch REG from.
+         * @param s Something what's either DTA or REG.
+         * @return TODO: a Number until we support other data types.
+         */
         private fun varOrVal(v:Map<String, Number>, s:String): Number {
             if (s in v)
                 return v[s]!!
@@ -198,7 +253,15 @@ class Executor(private val src_code: String) {
                 return s.toDouble()
             return s.toInt()
         }
-        private fun cmp(v1:Number, cmpr:CMPType, v2:Number): Boolean = when(cmpr) {
+
+        /**
+         * Compare/compute something.
+         *
+         * @param v1 Some Number.
+         * @param v2 Some Number.
+         * @param CMP CoMPuter to use for v1/v2.
+         */
+        private fun cmp(v1:Number, CMP:CMPType, v2:Number): Boolean = when(CMP) {
             CMPType.EQ -> v1 == v2
             CMPType.NEQ -> v1 != v2
             CMPType.LT -> v1.toDouble() < v2.toDouble()
@@ -210,10 +273,20 @@ class Executor(private val src_code: String) {
                 else -> false
             }
         }
+
+        /**
+         * Reset all vars in given var-map.
+         *
+         * @param v Variable map to reset.
+         */
         private fun resetVars(v:MutableMap<String, Number>) {
             for (i in 'A'..'Z')
                 v[i.toString()] = 0
         }
+
+        /**
+         * Map of recognized commands and their parameter types.
+         */
         private val known_cmds = mapOf(
             "PRINT" to CmdParam(listOf(PType.D_R)),
             "MOV" to CmdParam(listOf(PType.REG, PType.D_R)),
@@ -239,7 +312,15 @@ class Executor(private val src_code: String) {
             "SUM" to CmdParam(listOf(PType.REG, PType.D_R, PType.D_R)),
             "RESET" to CmdParam(),
         )
+
+        /**
+         * List of infix/postfix operators/commands.
+         */
         private val known_mid_ops = listOf("↔", "<->", "←", "+", "-", "→")
+
+        /**
+         * Map of CMP operations.
+         */
         private val known_cmp = mapOf(
             "=" to CMPType.EQ, "==" to CMPType.EQ,
             "!=" to CMPType.NEQ, "≠" to CMPType.NEQ, "<>" to CMPType.NEQ,
