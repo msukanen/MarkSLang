@@ -2,7 +2,7 @@
 Some sort of language(ish) thing to be.
 
 # Features
-Simple calculations, etc. Simple **REG**isters (for now only numeric).
+Simple calculations, loops, conditional(s), etc. Simple **REG**isters (for now only numeric).
 
 # Commands
 ## PRINT
@@ -16,10 +16,10 @@ Simple calculations, etc. Simple **REG**isters (for now only numeric).
 * ``D ← E``
 ## ADD, +, SUB, -, MUL, *, DIV, /
 Add, subtract, multiply, or divide given **REG** with something else. Result is stored in the given **REG**.
-* ``ADD A 4``
-* ``ADD B C``
-* ``D + 5``
-* ``E + F``
+* ``A + 4`` ... ``ADD A 4``
+* ``B - C`` ... ``SUB B C``
+* ``D * 5`` ... ``MUL D 5``
+* ``E / F`` ... ``DIV E F``
 ## JUMP, →
 Jump somewhere else in the code.
 * ``JUMP somewhere_else``
@@ -53,34 +53,51 @@ Sum into **REG** two other **REG**/**DTA**.
 * ``SUM C A B`` - sum ``A`` and ``B`` into **REG**``C``
 * ``SUM C A A`` - sum ``A`` twice into **REG**``C`` 
 ## RESET
-Reset all **REG** and restart the whole 'app'.
+Reset all **REG**.
+## RESTART
+Restart app from scratch.
+## WHILE, WEND
+Loop...
+```
+X ← 10
+A ← 0
+WHILE X
+  X - 1
+  A + 1
+  A * 1.5
+WEND
+PRINT A
+```
+```
+[169.9951171875]
+```
 
 # Example Code
 Shovel prime numbers below 50 into output buffer: 
 ```
-    N ← 50
-    PRINT 2
-    A ← 3
+  N ← 50
+  PRINT 2
+  A ← 3
 start:
-    B ← 2
-    Z ← 0
+  B ← 2
+  Z ← 0
 test:
-    C ← B
+  C ← B
 new:
-    IF C = A JUMP err
-    IF C > A JUMP past1
-    C + B
-    JUMP new
+  IF C = A JUMP err
+  IF C > A JUMP past1
+  C + B
+  JUMP new
 err:
-    Z ← 1
-    JUMP past2
+  Z ← 1
+  JUMP past2
 past1:
-    B + 1
-    IF B < A JUMP test
+  B + 1
+  IF B < A JUMP test
 past2:
-    IF Z = 1 JUMP past3
-    PRINT A
+  IF Z = 1 JUMP past3
+  PRINT A
 past3:
-    A + 1
-    IF A ≤ N JUMP start
+  A + 1
+  IF A ≤ N JUMP start
 ```

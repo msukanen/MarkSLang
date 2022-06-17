@@ -160,6 +160,10 @@ class Executor(private val src_code: String) {
                 "TRIM" -> vars[cmd[1]] = vars[cmd[1]]!!.toInt()
                 "SUM" -> vars[cmd[1]] = funcAdd(varOrVal(vars, cmd[2]), varOrVal(vars, cmd[3]))
                 "RESET" -> resetVars(vars)
+                "RESTART" -> {
+                    resetVars(vars)
+                    prc = 0
+                }
             }
         }
         return out.toList()
@@ -222,7 +226,7 @@ class Executor(private val src_code: String) {
         /**
          * Param is DTA? FYI/TODO: DTA is a numeric type of some sort, most often Int.
          */
-        private fun isDTA(s:String): Boolean = Regex("^\\d+$").matches(s)
+        private fun isDTA(s:String): Boolean = Regex("^\\d+([.]\\d+)?$").matches(s)
 
         /**
          * Param is LOC? FYI: LOG is in source code a jump point designator, e.g. 'jump_here:'.
@@ -307,6 +311,8 @@ class Executor(private val src_code: String) {
             "+" to CmdSwap("ADD"),
             "-" to CmdSwap("SUB"),
             "→" to CmdSwap("JUMP"),
+            "*" to CmdSwap("MUL"),
+            "/" to CmdSwap("DIV"),
             "DIV" to CmdParam(listOf(PType.REG, PType.D_R)),
             "TRIM" to CmdParam(listOf(PType.REG)),
             "SUM" to CmdParam(listOf(PType.REG, PType.D_R, PType.D_R)),
@@ -316,7 +322,7 @@ class Executor(private val src_code: String) {
         /**
          * List of infix/postfix operators/commands.
          */
-        private val known_mid_ops = listOf("↔", "<->", "←", "+", "-", "→")
+        private val known_mid_ops = listOf("↔", "<->", "←", "+", "-", "→", "*", "/")
 
         /**
          * Map of CMP operations.
