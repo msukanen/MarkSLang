@@ -1,23 +1,55 @@
 import kotlin.random.Random
 
+/**
+ * Executes everything unimaginable.
+ *
+ * @param src_code MarkSLang source code string/chunk/something.
+ */
 class Executor(private val src_code: String) {
+    /**
+     * Parameter types for commands.
+     */
     enum class PType {
         REG, DTA, D_R, CMD, CMP, LOC,
     }
+
+    /**
+     * Comparison and computation types for e.g. IF.
+     */
     enum class CMPType {
         LT, EQ, GT, LT_EQ, GT_EQ, NEQ, AND,
     }
 
+    /**
+     * Interface for all sorts of Cmd* grouping.
+     */
     interface CmdParamI
+
+    /**
+     * Cmd parameters should chew on this.
+     *
+     * @param types Param types, in desired (specific) order.
+     */
     data class CmdParam(val types:List<PType>) : CmdParamI {
         constructor() : this(listOf())
     }
+
+    /**
+     * For aliasing something else with a root command of some sort.
+     *
+     * @param with Cmd 'X' will be swapped with this one whenever encountered.
+     */
     data class CmdSwap(val with:String) : CmdParamI
 
-    fun run(verbose:Boolean = false): List<String> {
-        val raw = src_code.trim().split(regex = Regex("\\s*\n\\s*")).toMutableList()
+    /**
+     * Handle JUMP, WHILE, etc. jump points.
+     *
+     * @param src Source code, line by line.
+     */
+    private fun compile(src:List<String>): Pair<Map<String, Int>, List<List<String>>> {
+        val raw = src.toMutableList()
         val jmpPoints = mutableMapOf<String, Int>()
-        val repl1 = ArrayDeque<Pair<String,String>>()
+        val repl1 = ArrayDeque<Pair<String, String>>()
         val repl2 = mutableListOf<Pair<Int, String>>()
         var whereTo: String
         var prc = 0
@@ -26,7 +58,8 @@ class Executor(private val src_code: String) {
             val ln = it.split(Regex("\\s+")).toMutableList()
             if (Regex("^(__wend__)?[a-z\\d]+:?\\s*$").matches(ln[0]))
                 jmpPoints[ln[0].replace(":", "")] = prc
-            else if(ln[0]=="WHILE") {
+            else if (ln[0] == "WHILE") {
+                // TODO should be UUID level of randomness used, but this'll do for now...
                 var num = Random.nextLong()
                 if (num < 0L)
                     num = -num
@@ -34,7 +67,7 @@ class Executor(private val src_code: String) {
                 val addr = "__wend__${ln[1].lowercase()}${whereTo}"
                 repl1.addLast(Pair(ln[1], addr))
                 jmpPoints[addr] = prc
-            } else if(ln[0]=="WEND") {
+            } else if (ln[0] == "WEND") {
                 val addr = repl1.removeLast()
                 repl2.add(Pair(prc, "IF ${addr.first} > 0 JUMP ${addr.second}"))
             }
@@ -71,16 +104,26 @@ class Executor(private val src_code: String) {
                             PType.CMP -> isCMP(s)
                             PType.D_R -> isDTA(s) || isREG(s)
                         }
-                    ) throw IllegalStateException("In \"$it\": '$s' is not ${cmd.types[index-1]}")
+                    ) throw IllegalStateException("In \"$it\": '$s' is not ${cmd.types[index - 1]}")
                 }
             }
         }
 
+        return Pair(jmpPoints.toMap(), compiled.toList())
+    }
+
+    /**
+     * Time to run the fun!
+     *
+     * @param verbose Be verbose?
+     */
+    fun run(verbose:Boolean = false): List<String> {
+        val (jmpPoints, compiled) = compile(src_code.trim().split(regex = Regex("\\s*\n\\s*")))
         val vars = mutableMapOf<String, Number>()
         resetVars(vars)
         val out = mutableListOf<String>()
         val stack = ArrayDeque<Int>()
-        prc = 0
+        var prc = 0
         while (prc < compiled.size) {
             val cmd = compiled[prc]
             if (verbose) println(cmd)
