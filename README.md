@@ -54,3 +54,33 @@ Sum into **REG** two other **REG**/**DTA**.
 * ``SUM C A A`` - sum ``A`` twice into **REG**``C`` 
 ## RESET
 Reset all **REG** and restart the whole 'app'.
+
+# Example Code
+Shovel prime numbers below 50 into output buffer: 
+```
+    N ← 50
+    PRINT 2
+    A ← 3
+start:
+    B ← 2
+    Z ← 0
+test:
+    C ← B
+new:
+    IF C = A JUMP err
+    IF C > A JUMP past1
+    C + B
+    JUMP new
+err:
+    Z ← 1
+    JUMP past2
+past1:
+    B + 1
+    IF B < A JUMP test
+past2:
+    IF Z = 1 JUMP past3
+    PRINT A
+past3:
+    A + 1
+    IF A ≤ N JUMP start
+```
