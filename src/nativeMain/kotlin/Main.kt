@@ -45,6 +45,8 @@ END oughta be like [56.548667764616276, 50.26548245743669,
   END
 sine_wave:
   ; for future exercise, sort the math here!
+  ; we'll use REGs F, S, P and N
+  ; and results in T (time) & X (X-coord)
     """
     println( Executor(test_code2).run(true) )
 }
