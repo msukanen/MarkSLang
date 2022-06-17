@@ -124,6 +124,15 @@ OUT A
 * ``π E``
 * ``ADD C PI`` adds PI to whatever **REG**``C`` contains.
 * ``R * π`` multiplies **REG**``R`` with PI.
+
+## ABS
+Abs a **REG**. In other words, drop any notion of negative value.
+```
+SET X -10
+ABS X
+; results with X having 10 in it.
+```
+
 # Example Code
 Shovel prime numbers below 50 into output buffer: 
 ```

@@ -1,4 +1,6 @@
 import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.sqrt
 import kotlin.random.Random
 
 /**
@@ -98,8 +100,6 @@ class Executor(private val src_code: String) {
                     cmd = known_cmds[cmd.with]
                 }
 
-                compiled.add(ln)
-
                 if (ln.size < (cmd as CmdParam).types.size + 1)
                     throw IllegalStateException("WTF!")
 
@@ -114,6 +114,9 @@ class Executor(private val src_code: String) {
                         }
                     ) throw IllegalStateException("In \"$it\": '${ln[index + 1]}' is not $param")
                 }
+
+                // chop out extra commentary from compiled list
+                compiled.add(ln.subList(0, 1 + cmd.types.size))
             } else compiled.add(listOf("NOP"))
         }
 
@@ -173,6 +176,8 @@ class Executor(private val src_code: String) {
                     prc = 0
                 }
                 "PI" -> vars[cmd[1]] = PI
+                "ABS" -> vars[cmd[1]] = funcAbs(vars[cmd[1]]!!)
+                "SQRT" -> vars[cmd[1]] = sqrt(vars[cmd[1]]!!.toDouble())
             }
         }
         return out.toList()
@@ -231,6 +236,19 @@ class Executor(private val src_code: String) {
         inline fun <reified T : Number, reified U : Number> funcDiv(a: T, b: U): Number = a.toDouble() / b.toDouble()
 
         /**
+         * Abs.
+         *
+         * @param a Some Number.
+         * @return a Number, obviously.
+         */
+        inline fun <reified T : Number> funcAbs(a: T): Number {
+            return when (a) {
+                is Int -> abs(a)
+                else -> abs(a.toDouble())
+            }
+        }
+
+        /**
          * Param is REG? FYI: REG is a singular uppercase letter...
          */
         private fun isREG(s: String): Boolean = ("A".."Z").contains(s)
@@ -240,7 +258,7 @@ class Executor(private val src_code: String) {
          */
         private fun isDTA(s: String): Boolean = when (s) {
             "PI", "π", "Π" -> true
-            else -> Regex("^\\d+([.]\\d+)?$").matches(s)
+            else -> Regex("^-?\\d+([.]\\d+)?$").matches(s)
         }
 
         /**
@@ -336,6 +354,9 @@ class Executor(private val src_code: String) {
             "RESET" to CmdParam(),
             "PI" to CmdParam(listOf(PType.REG)),
             "π" to CmdSwap("PI"),
+            "ABS" to CmdParam(listOf(PType.REG)),
+            "SQRT" to CmdParam(listOf(PType.REG)),
+            "√" to CmdSwap("SQRT"),
         )
 
         /**
