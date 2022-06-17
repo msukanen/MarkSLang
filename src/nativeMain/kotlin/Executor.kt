@@ -54,22 +54,26 @@ class Executor(private val src_code: String) {
         var whereTo: String
         var prc = 0
         raw.forEach {
-            // lets extract jump points 1st round
-            val ln = it.split(Regex("\\s+")).toMutableList()
-            if (Regex("^(__wend__)?[a-z_\\d]+:?\\s*$").matches(ln[0]))
-                jmpPoints[ln[0].replace(":", "")] = prc
-            else if (ln[0] == "WHILE") {
-                // TODO should be UUID level of randomness used, but this'll do for now...
-                var num = Random.nextLong()
-                if (num < 0L)
-                    num = -num
-                whereTo = num.toString()
-                val addr = "__wend__${ln[1].lowercase()}${whereTo}"
-                repl1.addLast(Pair(ln[1], addr))
-                jmpPoints[addr] = prc
-            } else if (ln[0] == "WEND") {
-                val addr = repl1.removeLast()
-                repl2.add(Pair(prc, "IF ${addr.first} > 0 JUMP ${addr.second}"))
+            // lines starting with ';' are comments
+            // and so are lines with NOP
+            if (!Regex("^(;|NOP)").matches(it)) {
+                // lets extract jump points 1st round
+                val ln = it.split(Regex("\\s+")).toMutableList()
+                if (Regex("^(__wend__)?[a-z_\\d]+:?\\s*$").matches(ln[0]))
+                    jmpPoints[ln[0].replace(":", "")] = prc
+                else if (ln[0] == "WHILE") {
+                    // TODO should be UUID level of randomness used, but this'll do for now...
+                    var num = Random.nextLong()
+                    if (num < 0L)
+                        num = -num
+                    whereTo = num.toString()
+                    val addr = "__wend__${ln[1].lowercase()}${whereTo}"
+                    repl1.addLast(Pair(ln[1], addr))
+                    jmpPoints[addr] = prc
+                } else if (ln[0] == "WEND") {
+                    val addr = repl1.removeLast()
+                    repl2.add(Pair(prc, "IF ${addr.first} > 0 JUMP ${addr.second}"))
+                }
             }
             prc++
         }
@@ -95,18 +99,21 @@ class Executor(private val src_code: String) {
 
                 compiled.add(ln)
 
-                ln.forEachIndexed { index, s ->
-                    if (index > 0 && !when ((cmd as CmdParam).types[index - 1]) {
-                            PType.REG -> isREG(s)
-                            PType.DTA -> isDTA(s)
-                            PType.LOC -> isLOC(s)
-                            PType.CMD -> isCMD(s)
-                            PType.CMP -> isCMP(s)
-                            PType.D_R -> isDTA(s) || isREG(s)
+                if (ln.size < (cmd as CmdParam).types.size+1)
+                        throw IllegalStateException("WTF!")
+
+                cmd.types.forEachIndexed { index, param ->
+                    if (!when (param) {
+                            PType.REG -> isREG(ln[index + 1])
+                            PType.DTA -> isDTA(ln[index + 1])
+                            PType.LOC -> isLOC(ln[index + 1])
+                            PType.CMD -> isCMD(ln[index + 1])
+                            PType.D_R -> isDTA(ln[index + 1]) || isREG(ln[index + 1])
+                            PType.CMP -> isCMP(ln[index + 1])
                         }
-                    ) throw IllegalStateException("In \"$it\": '$s' is not ${cmd.types[index - 1]}")
+                    ) throw IllegalStateException("In \"$it\": '${ln[index+1]}' is not $param")
                 }
-            }
+            } else compiled.add(listOf("NOP"))
         }
 
         return Pair(jmpPoints.toMap(), compiled.toList())

@@ -1,9 +1,38 @@
 # MarkSLang
+**M***ark***SL***ang* Ⓒ 2022 *Markku Sukanen*. 
 Some sort of language(ish) thing to be.
 
 # Features
 Simple calculations, loops, conditional(s), etc. Simple **REG**isters (for now only numeric).
 
+## What's What?
+* **REG** refers to so-called "registers", which range from **A** to **Z**.
+* **DTA** refers to some raw data value, e.g. ``12.075``, ``404``, etc.
+* **LOC** in source code designates a "jump point" (or just a convenient tag), e.g. ``this_is_a_loc:``
+* **CMD** refers to any context-valid command.
+* **CMP** refers to one of the many compare/compute things: ``<``, ``>``, ``≠``, ``≤``, ``&`` etc.
+
+## Code Commenting
+```
+; any line beginning with ';' is treated as a comment and thus ignored.
+NOP and just the same is everything ignored after 'NOP' "command".
+  ; align
+    ; doesn't
+       ; matter
+```
+There's also the fact that all commands ignore any and everything that
+follows the stuff they munch, and thus something like...
+```
+WHILE X is above zero, we'll run the following piece of code
+  X - 1 happens to reduce the counter, right?
+  R ← X and here the shrinking X is used as 'radius'.
+  C ← 3.141 might have something to do with "PI", right?
+  C * 2 ... multiplied
+  C * R ... and then again, with radius this time.
+  OUT C happens then to shovel the circumference into output buffer!
+WEND then hops back to the WHILE X above.
+```
+... is a completely fine way to prettify / complicate your code!
 # Commands
 ## OUT
 "Prints" given value or **REG** into output buffer.
@@ -31,9 +60,22 @@ If something is something, then execute a **CMD**.
 **IF &lt;reg/dta&gt; &lt;cmp&gt; &lt;reg/dta&gt; &lt;cmd&gt; &lt;loc&gt;**
 * ``IF A < B JUMP only_if_a_was_lt_b`` - jump to *only_if_a_was_lt_b* if ``A``is less than ``B``. Note that whitespace between **REG/DTA**, **CMP** and 2nd **REG/DTA** is ***significant!*** 
 ## END
-End program.
+The End. End program.
+
+Program naturally ends when it runs of code to execute,
+but ``END`` can be used to quit it at some arbitrary point in middle of
+a chunk of code.
 ## NOP
 No-operation. May or may not be of some use for someone...
+Any and everything following ``NOP`` is ignored, and thus
+``NOP`` can be used for code commenting,
+```
+here_be_code:
+  NOP A pointless set operation follows, for demonstration purposes...
+  NOP ...or just to state that 42 is the answer to L.
+  SET L 42
+  END
+```
 ## SWAP, ↔
 Swap contents of two **REG**.
 * ``SWAP A B``
@@ -44,9 +86,11 @@ Call a / return from sub-routine.
 * ``CALL some_sub_somewhere``
 * ``RET``
 
-Note that if **CALL** stack is empty **RET** will act as **NOP** and the next command in pipeline will be executed. Occasionally useful, but potentially hazardous, too... ;-)
+Note that if **CALL** stack is empty then **RET** will act
+as **NOP** and execution of program will "fall through".
+Occasionally useful, yet potentially hazardous **;-)**
 ## TRIM
-Trims away decimals in **REG**.
+Chop off all decimals from **REG**. This ye olde float-to-int truncation.
 * ``TRIM A``
 ## SUM
 Sum into **REG** two other **REG**/**DTA**.
@@ -56,13 +100,15 @@ Sum into **REG** two other **REG**/**DTA**.
 ## RESET
 Reset all **REG**.
 ## RESTART
-Restart app from scratch.
+Restart app from scratch. At this point in time not very useful,
+but who knows?
 ## WHILE, WEND
-Loop...
+A rather basic looping operation.
 ```
 X ← 10
 A ← 0
 WHILE X
+  ; while X>0, keep looping
   X - 1
   A + 1
   A * 1.5
