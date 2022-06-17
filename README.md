@@ -5,13 +5,14 @@ Some sort of language(ish) thing to be.
 Simple calculations, loops, conditional(s), etc. Simple **REG**isters (for now only numeric).
 
 # Commands
-## PRINT
+## OUT
 "Prints" given value or **REG** into output buffer.
-* ``PRINT 2``
-* ``PRINT A``
-## MOV, ←
-* ``MOV A 2``
-* ``MOV B A``
+* ``OUT 2``
+* ``OUT A``
+## SET, ←
+Set a **REG**'s value.
+* ``SET A 2`` - set ``A`` to contain ``2``
+* ``SET B A`` - set ``B`` to contain whatever is in ``A``
 * ``C ← 3``
 * ``D ← E``
 ## ADD, +, SUB, -, MUL, *, DIV, /
@@ -66,7 +67,7 @@ WHILE X
   A + 1
   A * 1.5
 WEND
-PRINT A
+OUT A
 ```
 ```
 [169.9951171875]
@@ -76,7 +77,7 @@ PRINT A
 Shovel prime numbers below 50 into output buffer: 
 ```
   N ← 50
-  PRINT 2
+  OUT 2
   A ← 3
 start:
   B ← 2
@@ -96,7 +97,7 @@ past1:
   IF B < A JUMP test
 past2:
   IF Z = 1 JUMP past3
-  PRINT A
+  OUT A
 past3:
   A + 1
   IF A ≤ N JUMP start

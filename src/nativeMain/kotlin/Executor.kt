@@ -130,8 +130,8 @@ class Executor(private val src_code: String) {
             prc++
             when(cmd[0]) {
                 "NOP" -> continue
-                "PRINT" -> out.add(varOrVal(vars, cmd[1]).toString())
-                "MOV" -> vars[cmd[1]] = varOrVal(vars, cmd[2])
+                "OUT" -> out.add(varOrVal(vars, cmd[1]).toString())
+                "SET" -> vars[cmd[1]] = varOrVal(vars, cmd[2])
                 "ADD" -> vars[cmd[1]] = funcAdd(vars[cmd[1]]!!, varOrVal(vars, cmd[2]))
                 "SUB" -> vars[cmd[1]] = funcSub(vars[cmd[1]]!!, varOrVal(vars, cmd[2]))
                 "MUL" -> vars[cmd[1]] = funcMul(vars[cmd[1]]!!, varOrVal(vars, cmd[2]))
@@ -292,8 +292,8 @@ class Executor(private val src_code: String) {
          * Map of recognized commands and their parameter types.
          */
         private val known_cmds = mapOf(
-            "PRINT" to CmdParam(listOf(PType.D_R)),
-            "MOV" to CmdParam(listOf(PType.REG, PType.D_R)),
+            "OUT" to CmdParam(listOf(PType.D_R)),
+            "SET" to CmdParam(listOf(PType.REG, PType.D_R)),
             "ADD" to CmdParam(listOf(PType.REG, PType.D_R)),
             "SUB" to CmdParam(listOf(PType.REG, PType.D_R)),
             "MUL" to CmdParam(listOf(PType.REG, PType.D_R)),
@@ -307,7 +307,7 @@ class Executor(private val src_code: String) {
             "RET" to CmdParam(),
             "↔" to CmdSwap("SWAP"),
             "<->" to CmdSwap("SWAP"),
-            "←" to CmdSwap("MOV"),
+            "←" to CmdSwap("SET"),
             "+" to CmdSwap("ADD"),
             "-" to CmdSwap("SUB"),
             "→" to CmdSwap("JUMP"),
